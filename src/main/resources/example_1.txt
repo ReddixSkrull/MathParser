@@ -1,6 +1,14 @@
+10 / 1 + 3 + 4 / 2 + 8 + 11 * 3
+10 / 2
+10 * 1 - 3 - 4 * 2 + 8 + 11 * 3
+10 * 1 + 3 + 4 * 2 + 8 + 11 * 3
+
+2 * 2 + 2 * 2 * 2 + 2
+
+2 * 4 + 3 * 5
+10 + 4 * 2 + 8
 10 * 1 - 3 - 4 * 2 + 8 + 11 * 3
 10 + 2 * 4
-10 + 4 * 2 + 8
 10 * 20
 10 1 + 1 * (1 / 2) - 4
 
@@ -93,13 +101,261 @@ ziel
 3   *
     4 2
 
-# schauen ob die nächste operation eine plus
-#   wenn plus:
-#       plus in die root hängen
-#   sonst wenn mult:
-#
+### algo
 
-# wenn operation mult
-#   wenn sibling digit:
-#       digit und next digit als children
-#       mult als child der vorherigen op
+aktuelle tree node = tree root
+liste = liste aus tokens die zu tree verarbeitet werden sollen
+solange elemente in liste:
+    nehme vorderstes element aus liste
+        wenn vorderstes element zahl:
+            wenn aktuelle tree node leer:
+                setzte digit als aktuelle  tree node
+            wenn aktuelle tree node op:
+                wenn aktuelle tree node op plus:
+
+                setze digit als child der op
+            aktuelle tree node = die neue digit
+        wenn vorderstes element op:
+            wenn plus op:
+                wenn aktuelle tree node digit:
+                    setzte digit als child der plus op
+                wenn aktuelle tree node op:
+                    wenn aktuelle tree node op plus:
+                        setze aktuelle tree node op als child der neuen tree node
+                    wenn aktuelle tree node op mult:
+                        setzte aktuelle tree node op mult als child der neuen plus op
+
+
+
+1 + 1 * 2
+
+step                                    tree
+
+1. wir nehmen erstes token: 1           []
+2. token is digit: ja                   []
+3. tree root is op: nein                []
+4. tree root is digit: nein             []
+5. 1 als tree root                      [1]
+
+6. wir nehmen neues erstes token: +     [1]
+7. token is digit: nein                 [1]
+8. token is op: ja                      [1]
+9. token is +: ja                       [1]
+10: add tree root as child              [1]
+11: put + at tree root                  [+ [1]]
+12: nehme neues erstes token: 1         [+ [1]]
+13: token is digit: ja                  [+ [1]]
+14. tree root is op: ja                 [+ [1]]
+15. add digit as child:                 [+ [1][1]]
+
+16. neues erstes token: *               [+ [1][1]]
+17. token is digit: nein                [+ [1][1]]
+18. token is op: ja                     [+ [1][1]]
+19. token is +: nein                    [+ [1][1]]
+20. token is *: ja                      [+ [1][1]]
+21. tree root is op: ja                 [+ [1][1]]
+22. remove children from tree root      [+ ]
+23. add to own children                 [+ ]
+24. add as tree root child              [+ [* [1][1]]]
+
+25. neue erstes token:                  [+ [* [1][1]]]
+26. token is digit: ja                  [+ [* [1][1]]]
+27. tree root is op: ja                 [+ [* [1][1]]]
+28. add digit as child:                 [+ [* [1][1]][2]]
+
+wenn man das zuletzt hinzugefügte token speichern würde könnte man beim umhängen wegen einer multiplikation nur das
+zuletzt hinzugefügt token als child and die multiplikation hänen
+
+also wenn ein token hinzugefügt wird wird es als letzte hinzugefügtes gespeichert
+wenn eine multiplikaton hinzugeüfgt wird dann wird das zuletzt hinzugefügte genommen und direkt als child an diese gehängt
+diese mult wird dann als child and den parent von dem zuletzt hinzugefügten gehängt
+dann wird das nächste token genommen, wahrscheinlich wieder eine digit
+wird an die mult gehängt
+wenn nun das nächste token beispielsweise eine addition ist
+dann wird die root einfach an diese gehängt
+wenn das nächste token eine multiplikation ist wird es an den parent der zuletzt hinzugefügten gehängt
+
+
+2 + 3 * 4 + 2
+
+                                        last added      tree
+1.  nehme erstes token: 2               null            []
+2.  token is digit: ja                  null
+3.  last added is *: nein               null
+4.  last added is +: nein               null
+5.  root is empty: ja                   null
+6.  add as root                         null            [2]
+7.  set as last added                   2               [2]
+
+8.  nehme erstes token: +               2               [2]
+9.  token is digit: no                  2               [2]
+10. token is operation: yes             2               [2]
+11. token is *: no                      2               [2]
+12. token is +: yes                     2               [2]
+13. set root as children                2               []
+14. set token as root                   2               [+ [2]]
+15. set as last added                   +               [+ [2]]
+
+16. nehme erstes token: 3               +               [+ [2]]
+17. token is digit: yes                 +               [+ [2]]
+18. last added is *: no                 +               [+ [2]]
+19. last added is +:yes                 +               [+ [2]]
+20. add token as child:                 +               [+ [2][3]]
+21. set as last added                   3               [+ [2][3]]
+
+22. erstes token: *                     3               [+ [2][3]]
+23. is digit: no                        3               [+ [2][3]]
+24. is operation: yes                   3               [+ [2][3]]
+25. is * : yes                          3               [+ [2][3]]
+26. last added is digit: yes            3               [+ [2][3]]
+27. add last added as child:            3               [+ [2]]
+28. add token as child of last parent   3               [+ [2][* [3]]]
+28. set as last added                   *               [+ [2][* [3]]]
+
+29. neues erstes: 4                     *               [+ [2][* [3]]]
+30. is diti: yes                        *               [+ [2][* [3]]]
+31. last added is *: yes                *               [+ [2][* [3]]]
+32. add token as child:                 *               [+ [2][* [3][4]]]
+33. set last added                      4               [+ [2][* [3][4]]]
+
+34. neues erstes: +                     4               [+ [2][* [3][4]]]
+35. is digit: no                        4               [+ [2][* [3][4]]]
+36. is op: yes                          4               [+ [2][* [3][4]]]
+37. is *: no                            4               [+ [2][* [3][4]]]
+38. is +: yes                           4               [+ [2][* [3][4]]]
+39. root as child                       4               []
+40. set as root                         4               [+ [+ [2][* [3][4]]]]
+41. set last added                      +               [+ [+ [2][* [3][4]]]]
+
+42. neues erstes: 2                     +               [+ [+ [2][* [3][4]]]]
+43. is digit: yes                       +               [+ [+ [2][* [3][4]]]]
+44. last added is *: no                 +               [+ [+ [2][* [3][4]]]]
+45. last added is +: yes                +               [+ [+ [2][* [3][4]]]]
+46. add as child:                       +               [+ [+ [2][* [3][4]]][2]]
+
+
+1 * 2 * 3 + 5
+                                        last added      tree
+neues erstes 1                          null            []
+is digit: yes                           null            []
+last added is *: no                     null            []
+last added is +: no                     null            []
+root is empty: yes                      null            []
+add as root:                            null            [1]
+set as last:                            1               [1]
+
+neues erstes *                          1               [1]
+is digit: no                            1               [1]
+is op: yes                              1               [1]
+is *: yes                               1               [1]
+last added is digit: yes                1               [1]
+add last added as child                 1               []
+last added has parent: no               1               []
+add as root                             1               [* [1]]
+set as last added                       *               [* [1]]
+
+neues erstes: 2                         *               [* [1]]
+is digit: yes                           *               [* [1]]
+last added is *: yes                    *               [* [1]]
+add token as child:                     *               [* [1][2]]
+set as last added:                      2               [* [1][2]]
+
+neues erstes: *                         2               [* [1][2]]
+is digit: no                            2               [* [1][2]]
+is op: yes                              2               [* [1][2]]
+is *: yes                               2               [* [1][2]]
+last added is digit: yes                2               [* [1][2]]
+add last added as child                 2               [* [1]]
+last added has parent: yes              2               [* [1][* [2]]]
+set as last added:                      *               [* [1][* [2]]]
+
+neues erstes: 3                         *               [* [1][* [2]]]
+is digit: yes                           *               [* [1][* [2]]]
+last added is *: yes                    *               [* [1][* [2]]]
+add as child of last:                   *               [* [1][* [2][3]]
+set as last added:                      3               [* [1][* [2][3]]
+
+neues erstes: +                         3               [* [1][* [2][3]]
+is digit: no:                           3               [* [1][* [2][3]]
+is op: yes:                             3               [* [1][* [2][3]]
+is * no                                 3               [* [1][* [2][3]]
+is +: yes                               3               [* [1][* [2][3]]
+set root aus child:                     3
+set token as root                       3               [+ [* [1][* [2][3]]]
+set as last added:                      +               [+ [* [1][* [2][3]]]
+
+neues erstes: 5                         +               [+ [* [1][* [2][3]]]
+is digit: yes                           +               [+ [* [1][* [2][3]]]
+last added is *: no                     +               [+ [* [1][* [2][3]]]
+last is +: yes                          +               [+ [* [1][* [2][3]]]
+add as child of last:                   +               [+ [* [1][* [2][3]][5]
+
+
+2 * 3 + 4 * 5
+
+                                        last added      tree
+neues erstes 2
+is digit yes
+last added is *: no
+last added is +: no
+root is empty:   yes
+add as root                                             [2]
+add as last                             2               [2]
+
+neues erstes *
+is digit: no
+is op: yes
+is *: yes
+last add is digit: yes
+add last added as child:
+last added has parent: no
+add as root                             2               [* [2]]
+set as last added                       *
+
+neues erstes 3
+is digit: yes
+last added is *: yes
+add as child of last                    2               [* [2][3]]
+set as last added:                      3               [* [2][3]]
+
+neues erstes: +
+is digit: no
+is op: yes
+is *: no
+is +: yes
+set root as child                       3               []
+set as root                             3               [+ [* [2][3]]]
+set as last added                       +               [+ [* [2][3]]]
+
+neues erstes: 4
+is digit: yes
+last added is *: no
+last added is +: yes
+add as child to last added:             +               [+ [* [2][3]][4]]
+set as last added:                      4               [+ [* [2][3]][4]]
+
+neues erstes: *
+is digit: no
+is op: yes
+is *: yes
+last added is digit: yes
+add last added as child                 4               [+ [* [2][3]]]
+last added had parent: yes
+add as child of parent of last          4               [+ [*[2][3]][* [4]]]
+set as last added:                      *               [+ [*[2][3]][* [4]]]
+
+neues erstes: 5
+is digit: yes
+last added is*: yes
+add as child of last added:             *               [+ [*[2][3]][* [4][5]]]
+
+[+
+    [*
+        [2]
+        [3]
+]
+    [*
+        [4]
+        [5]
+    ]
+]

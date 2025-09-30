@@ -1,4 +1,4 @@
-package de.doering;
+package de.doering.mathinterpreter.models;
 
 public class TokenTree {
 

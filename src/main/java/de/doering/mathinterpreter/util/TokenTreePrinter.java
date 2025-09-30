@@ -1,4 +1,7 @@
-package de.doering;
+package de.doering.mathinterpreter.util;
+
+import de.doering.mathinterpreter.models.TokenTree;
+import de.doering.mathinterpreter.models.TokenTreeToken;
 
 public class TokenTreePrinter {
 
@@ -11,9 +14,9 @@ public class TokenTreePrinter {
     private static void prettyPrintNode(TokenTreeToken node, StringBuilder sb, String prefix, boolean isTail) {
         sb.append(prefix)
                 .append(isTail ? "└── " : "├── ")
-                .append(node.getToken().getLexeme())
+                .append(node.getToken().getTokentype())
                 .append(" (value=")
-                .append(node.getToken().getValue())
+                .append(node.getToken().getLexem())
                 .append(", line=")
                 .append(node.getToken().getLine())
                 .append(", col=")

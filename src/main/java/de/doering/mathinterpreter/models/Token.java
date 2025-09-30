@@ -1,28 +1,28 @@
-package de.doering;
+package de.doering.mathinterpreter.models;
 
 public class Token {
 
-    private String lexeme;
+    private Tokentypes tokentype;
     private int line;
     private int column;
-    private String value;
+    private String lexem;
 
     public Token() {
     }
 
-    public Token(String lexeme, int line, int column, String value) {
-        this.lexeme = lexeme;
+    public Token(Tokentypes tokentype, int line, int column, String lexem) {
+        this.tokentype = tokentype;
         this.line = line;
         this.column = column;
-        this.value = value;
+        this.lexem = lexem;
     }
 
-    public String getLexeme() {
-        return lexeme;
+    public Tokentypes getTokentype() {
+        return tokentype;
     }
 
-    public void setLexeme(String lexeme) {
-        this.lexeme = lexeme;
+    public void setTokentype(Tokentypes tokentype) {
+        this.tokentype = tokentype;
     }
 
     public int getLine() {
@@ -41,30 +41,30 @@ public class Token {
         this.column = column;
     }
 
-    public String getValue() {
-        return value;
+    public String getLexem() {
+        return lexem;
     }
 
-    public void setValue(String value) {
-        this.value = value;
+    public void setLexem(String lexem) {
+        this.lexem = lexem;
     }
 
     @Override
     public String toString() {
         return "Token{" +
-                "lexeme='" + lexeme + '\'' +
+                "lexeme='" + tokentype + '\'' +
                 ", line=" + line +
                 ", column=" + column +
-                ", value='" + value + '\'' +
+                ", value='" + lexem + '\'' +
                 '}';
     }
 
     public boolean isDigit(){
-        return lexeme.equals("digit");
+        return tokentype.equals(Tokentypes.DIGIT);
     }
 
     public boolean isOperator(){
-        return lexeme.equals("operation");
+        return tokentype.equals(Tokentypes.OPERATION);
     }
 
 }
