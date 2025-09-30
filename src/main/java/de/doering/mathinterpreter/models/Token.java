@@ -58,4 +58,13 @@ public class Token {
                 ", value='" + value + '\'' +
                 '}';
     }
+
+    public boolean isDigit(){
+        return lexeme.equals("digit");
+    }
+
+    public boolean isOperator(){
+        return lexeme.equals("operation");
+    }
+
 }
