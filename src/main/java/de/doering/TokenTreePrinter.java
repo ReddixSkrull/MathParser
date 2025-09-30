@@ -4,13 +4,14 @@ public class TokenTreePrinter {
 
     public static String prettyPrint(TokenTree tree) {
         StringBuilder sb = new StringBuilder();
-        prettyPrintNode(tree.getRoot(), sb, 0);
+        prettyPrintNode(tree.getRoot(), sb, "", true);
         return sb.toString();
     }
 
-    private static void prettyPrintNode(TokenTreeToken node, StringBuilder sb, int indent) {
-        indent(sb, indent);
-        sb.append(node.getToken().getLexeme())
+    private static void prettyPrintNode(TokenTreeToken node, StringBuilder sb, String prefix, boolean isTail) {
+        sb.append(prefix)
+                .append(isTail ? "└── " : "├── ")
+                .append(node.getToken().getLexeme())
                 .append(" (value=")
                 .append(node.getToken().getValue())
                 .append(", line=")
@@ -20,15 +21,12 @@ public class TokenTreePrinter {
                 .append(")")
                 .append("\n");
 
-        for (TokenTreeToken child : node.getChildren()) {
-            prettyPrintNode(child, sb, indent + 2);
-        }
-    }
-
-    private static void indent(StringBuilder sb, int indent) {
-        for (int i = 0; i < indent; i++) {
-            sb.append(' ');
+        var children = node.getChildren();
+        for (int i = 0; i < children.size(); i++) {
+            boolean last = (i == children.size() - 1);
+            prettyPrintNode(children.get(i), sb, prefix + (isTail ? "    " : "│   "), last);
         }
     }
 }
+
 

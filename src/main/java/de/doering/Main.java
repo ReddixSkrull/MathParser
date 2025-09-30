@@ -3,10 +3,7 @@ package de.doering;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.StringJoiner;
+import java.util.*;
 
 public class Main {
 
@@ -97,35 +94,35 @@ public class Main {
         // solannge zeichen zu currentokenvalue hinzufügen bis das nächste zeichen ein anders token wäre
         for (int i = 0; i < arr.length; i++) {
             String currentTokenString = arr[i];
-            if(isDigit(currentTokenString)) {
+            if (isDigit(currentTokenString)) {
 
                 if (isDigit(arr[(i + 1) % arr.length])) {
                     tokenValue.append(currentTokenString);
-                    if(i + 1 >= arr.length) {
-                        tokens.add(TokenFactory.createDigitToken(0,i,tokenValue.toString()));
+                    if (i + 1 >= arr.length) {
+                        tokens.add(TokenFactory.createDigitToken(0, i, tokenValue.toString()));
                         tokenValue = new StringBuilder();
                     }
                 } else {
                     tokenValue.append(currentTokenString);
-                    tokens.add(TokenFactory.createDigitToken(0,i,tokenValue.toString()));
+                    tokens.add(TokenFactory.createDigitToken(0, i, tokenValue.toString()));
                     tokenValue = new StringBuilder();
                 }
             }
-            if(isOperation(currentTokenString)) {
+            if (isOperation(currentTokenString)) {
                 tokenValue.append(currentTokenString);
-                tokens.add(TokenFactory.createOperationToken(0,i,tokenValue.toString()));
+                tokens.add(TokenFactory.createOperationToken(0, i, tokenValue.toString()));
                 tokenValue = new StringBuilder();
             }
             if (isOpeningBracket(currentTokenString)) {
                 bracketCount++;
                 tokenValue.append(currentTokenString);
-                tokens.add(TokenFactory.createOpeningBracketToken(0,i,tokenValue.toString()));
+                tokens.add(TokenFactory.createOpeningBracketToken(0, i, tokenValue.toString()));
                 tokenValue = new StringBuilder();
             }
             if (isClosingBracket(currentTokenString)) {
                 bracketCount--;
                 tokenValue.append(currentTokenString);
-                tokens.add(TokenFactory.createClosingBracketToken(0,i,tokenValue.toString()));
+                tokens.add(TokenFactory.createClosingBracketToken(0, i, tokenValue.toString()));
                 tokenValue = new StringBuilder();
             }
         }
@@ -135,6 +132,9 @@ public class Main {
         return tokens.toArray(Token[]::new);
     }
 
+    // ich muss die operationen ordnen damit zuerst die multiplikationen berechnet werden
+    // ich muss den baum ursprünglich anders bauen
+    // alle multiplikationen müssen endnodes sein, oder aneinander gehängt werden
     private static TokenTree buildTree(Token[] tokens) {
         List<Token> tokenList = new ArrayList<>(Arrays.stream(tokens).toList());
         TokenTree tree = new TokenTree();
@@ -147,22 +147,15 @@ public class Main {
 
         TokenTreeToken currentTreeNode = tree.getRoot();
 
-        // ich muss die root immer nach unten hängen und dann quasi den baum so bauen das der anfang der rechnung das ende des baumes wird
         while (!tokenList.isEmpty()) {
             currentToken = tokenList.removeFirst();
             if (currentToken.getLexeme().equals("operation")) {
                 TokenTreeToken nextTreeToken = new TokenTreeToken();
                 nextTreeToken.setToken(currentToken);
-                if (currentTreeNode.getToken().getLexeme().equals("operation")) {
-                    currentTreeNode.addChild(nextTreeToken);
-                    currentTreeNode = nextTreeToken;
-                } else {
-                    nextTreeToken.addChild(currentTreeNode);
-                    tree.setRoot(nextTreeToken);
-                    currentTreeNode = nextTreeToken;
-                }
-            }
-            if(currentToken.getLexeme().equals("digit")) {
+                nextTreeToken.addChild(currentTreeNode);
+                tree.setRoot(nextTreeToken);
+                currentTreeNode = nextTreeToken;
+            } else if (currentToken.getLexeme().equals("digit")) { // wenn es eine zahl ist
                 TokenTreeToken nextTreeToken = new TokenTreeToken();
                 nextTreeToken.setToken(currentToken);
                 currentTreeNode.addChild(nextTreeToken);
@@ -172,17 +165,48 @@ public class Main {
         return tree;
     }
 
+    private static String performOperation(String operation, String a, String b) {
+        Integer aAsInt = Integer.parseInt(a);
+        Integer bAsInt = Integer.parseInt(b);
+        return switch (operation) {
+            case "+" -> String.valueOf(aAsInt + bAsInt);
+            case "-" -> String.valueOf(aAsInt - bAsInt);
+            case "*" -> String.valueOf(aAsInt * bAsInt);
+            case "/" -> String.valueOf(aAsInt / bAsInt);
+            default -> String.valueOf(aAsInt);
+        };
+    }
+
+
+    private static String caluclateTree(TokenTree tree) {
+        TokenTreeToken root = tree.getRoot();
+        String result = caluclateNode(root);
+        System.out.println(result);
+        return "";
+    }
+
+    private static String caluclateNode(TokenTreeToken tokenTreeToken) {
+        TokenTreeToken firstChild = tokenTreeToken.getChildren().removeFirst();
+        TokenTreeToken secondChild = tokenTreeToken.getChildren().removeFirst();
+        String tA = firstChild.getToken().getLexeme().equals("operation") ? caluclateNode(firstChild) : firstChild.getToken().getValue();
+        String tB = secondChild.getToken().getLexeme().equals("operation") ? caluclateNode(secondChild) : secondChild.getToken().getValue();
+        String tOperation = tokenTreeToken.getToken().getValue();
+        return performOperation(tOperation, tA, tB);
+    }
+
+
     public static void main(String[] args) {
         try (FileReader fileReader = new FileReader("src/main/resources/example_1.txt"); BufferedReader bufferedReader = new BufferedReader(fileReader)) {
             String line = bufferedReader.readLine();
             String[] split = line.split("");
             split = removeWhitespaces(split);
-            Token[] tokens = parseLine2(split,0);
+            Token[] tokens = parseLine2(split, 0);
             TokenTree tree = buildTree(tokens);
             System.out.println(arrayToString(split));
             System.out.println(arrayToString(tokens));
             System.out.println(tree);
             System.out.println(TokenTreePrinter.prettyPrint(tree));
+            caluclateTree(tree);
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
