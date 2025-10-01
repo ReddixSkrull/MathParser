@@ -7,6 +7,6 @@ public class Main {
 
     public static void main(String[] args) {
         MathInterpreter mathInterpreter = new MathInterpreter();
-        mathInterpreter.calculateFile("src/main/resources/example2.txt");
+        mathInterpreter.calculateFile("src/main/resources/example2.txt"             );
     }
 }
